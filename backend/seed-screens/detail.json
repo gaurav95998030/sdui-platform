@@ -1,0 +1,133 @@
+{
+  "id": "detail",
+  "version": "1.0.0",
+  "title": "Transaction",
+  "background": "background",
+  "appBar": { "title": "{{args.title}}", "showBack": true, "centered": true },
+
+  "state": { "ui": { "rating": 0 } },
+
+  "root": {
+    "type": "column",
+    "modifier": { "padding": 20, "width": "match_parent" },
+    "props": { "spacing": 20 },
+    "children": [
+      {
+        "type": "card",
+        "modifier": { "width": "match_parent", "cornerRadius": 20, "elevation": 0 },
+        "children": [
+          {
+            "type": "column",
+            "modifier": { "padding": 20, "width": "match_parent" },
+            "props": { "spacing": 6, "align": "center" },
+            "children": [
+              {
+                "type": "text",
+                "props": { "text": "{{currency(args.amount, wallet.currency)}}" },
+                "style": { "typography": "displaySmall", "fontWeight": "bold" }
+              },
+              {
+                "type": "text",
+                "props": { "text": "{{args.title}}" },
+                "style": { "typography": "bodyMedium", "textColor": "muted" }
+              },
+              {
+                "type": "text",
+                "props": { "text": "Reference {{upper(args.id)}}" },
+                "style": { "typography": "labelSmall", "textColor": "muted" }
+              }
+            ]
+          }
+        ]
+      },
+
+      {
+        "type": "column",
+        "props": { "spacing": 8 },
+        "children": [
+          {
+            "type": "text",
+            "props": { "text": "How was this merchant?" },
+            "style": { "typography": "titleSmall" }
+          },
+          {
+            "type": "rating",
+            "props": { "value": "{{ui.rating}}", "size": 30 },
+            "actions": {
+              "onChange": {
+                "type": "setState",
+                "params": { "path": "ui.rating", "value": "{{value}}" },
+                "then": [
+                  { "type": "analytics", "params": { "event": "merchant_rated", "properties": { "stars": "{{value}}" } } }
+                ]
+              }
+            }
+          },
+          {
+            "type": "text",
+            "visible": "{{ui.rating > 0}}",
+            "animation": { "enter": "fade" },
+            "props": { "text": "Thanks — you rated {{ui.rating}} out of 5." },
+            "style": { "typography": "bodySmall", "textColor": "success" }
+          }
+        ]
+      },
+
+      { "type": "divider", "modifier": { "width": "match_parent" } },
+
+      {
+        "type": "row",
+        "modifier": { "width": "match_parent" },
+        "props": { "spacing": 12 },
+        "children": [
+          {
+            "type": "button",
+            "modifier": { "weight": 1 },
+            "props": { "text": "Share", "variant": "outlined", "leadingIcon": "share" },
+            "actions": {
+              "onClick": {
+                "type": "share",
+                "params": { "text": "I spent {{currency(args.amount)}} at {{args.title}}", "subject": "Expense" }
+              }
+            }
+          },
+          {
+            "type": "button",
+            "modifier": { "weight": 1 },
+            "props": { "text": "Copy ID", "variant": "outlined", "leadingIcon": "check" },
+            "actions": {
+              "onClick": {
+                "type": "copyClipboard",
+                "params": { "text": "{{args.id}}", "confirmMessage": "Reference copied" }
+              }
+            }
+          }
+        ]
+      },
+
+      {
+        "type": "button",
+        "modifier": { "width": "match_parent" },
+        "props": { "text": "Delete transaction", "variant": "text" },
+        "style": { "contentColor": "danger" },
+        "actions": {
+          "onClick": {
+            "type": "showDialog",
+            "params": {
+              "title": "Delete this transaction?",
+              "message": "This cannot be undone.",
+              "confirmLabel": "Delete",
+              "cancelLabel": "Keep",
+              "destructive": true,
+              "confirmAction": {
+                "type": "showToast",
+                "params": { "message": "Deleted {{args.id}}" },
+                "then": [{ "type": "navigate", "params": { "mode": "popToRoot" } }]
+              }
+            }
+          }
+        }
+      }
+    ]
+  }
+}

@@ -1,0 +1,112 @@
+{
+  "id": "settings",
+  "version": "1.0.0",
+  "title": "Settings",
+
+  "state": {
+    "prefs": { "notifications": true, "biometrics": false },
+    "sections": [
+      { "id": "s1", "icon": "person", "label": "Profile", "screen": "profile" },
+      { "id": "s2", "icon": "creditCard", "label": "Payment methods", "screen": "profile" },
+      { "id": "s3", "icon": "notifications", "label": "Notifications", "screen": "profile" }
+    ]
+  },
+
+  "root": {
+    "type": "column",
+    "modifier": { "padding": 20, "width": "match_parent" },
+    "props": { "spacing": 14 },
+    "children": [
+      {
+        "type": "text",
+        "props": { "text": "Settings" },
+        "style": { "typography": "titleLarge", "fontWeight": "bold" }
+      },
+
+      {
+        "type": "column",
+        "modifier": { "width": "match_parent" },
+        "props": { "spacing": 2 },
+        "children": [
+          {
+            "type": "row",
+            "repeat": { "items": "{{sections}}", "as": "row" },
+            "modifier": { "width": "match_parent", "padding": { "vertical": 12 }, "clickable": true },
+            "props": { "spacing": 12, "align": "center" },
+            "actions": {
+              "onClick": {
+                "type": "navigate",
+                "params": { "screen": "{{row.screen}}", "mode": "push", "args": { "section": "{{row.id}}" } }
+              }
+            },
+            "children": [
+              { "type": "icon", "props": { "name": "{{row.icon}}", "size": 20 } },
+              {
+                "type": "text",
+                "modifier": { "weight": 1 },
+                "props": { "text": "{{row.label}}" },
+                "style": { "typography": "bodyLarge" }
+              },
+              { "type": "icon", "props": { "name": "chevronRight", "size": 18 }, "style": { "tint": "muted" } }
+            ]
+          }
+        ]
+      },
+
+      { "type": "divider", "modifier": { "width": "match_parent" } },
+
+      {
+        "type": "switch",
+        "props": { "name": "notifications", "path": "prefs.notifications", "label": "Push notifications" },
+        "actions": {
+          "onChange": {
+            "type": "showToast",
+            "params": { "message": "Notifications {{value == 'true' ? 'on' : 'off'}}" }
+          }
+        }
+      },
+
+      {
+        "type": "switch",
+        "props": { "name": "biometrics", "path": "prefs.biometrics", "label": "Unlock with biometrics" }
+      },
+
+      { "type": "divider", "modifier": { "width": "match_parent" } },
+
+      {
+        "type": "text",
+        "props": { "text": "Appearance" },
+        "style": { "typography": "labelLarge", "textColor": "muted" }
+      },
+
+      {
+        "type": "row",
+        "modifier": { "width": "match_parent" },
+        "props": { "spacing": 10 },
+        "children": [
+          {
+            "type": "button",
+            "modifier": { "weight": 1 },
+            "props": { "text": "Light", "variant": "outlined" },
+            "actions": { "onClick": { "type": "setTheme", "params": { "theme": "brand-light" } } }
+          },
+          {
+            "type": "button",
+            "modifier": { "weight": 1 },
+            "props": { "text": "Dark", "variant": "outlined" },
+            "actions": { "onClick": { "type": "setTheme", "params": { "theme": "brand-dark" } } }
+          }
+        ]
+      },
+
+      { "type": "spacer", "props": { "height": 4 } },
+
+      {
+        "type": "button",
+        "modifier": { "width": "match_parent" },
+        "props": { "text": "Close", "variant": "tonal" },
+        "actions": { "onClick": { "type": "dismiss" } }
+      }
+    ]
+  }
+}

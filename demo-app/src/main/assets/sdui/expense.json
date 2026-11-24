@@ -1,0 +1,196 @@
+{
+  "id": "expense",
+  "version": "1.0.0",
+  "title": "Add expense",
+  "scrollable": true,
+  "background": "background",
+
+  "state": {
+    "form": { "amount": "", "category": "food", "date": "", "note": "", "billable": false },
+    "ui": { "submitting": false }
+  },
+
+  "apis": {
+    "createExpense": {
+      "url": "{{env.apiBase}}/api/v1/demo/expenses",
+      "method": "POST",
+      "headers": { "Content-Type": "application/json" },
+      "auth": { "type": "bearer", "credential": "default" },
+      "loadingKey": "ui.submitting",
+      "errorKey": "ui.error",
+      "timeoutMs": 15000,
+      "retry": { "maxAttempts": 2 }
+    }
+  },
+
+  "appBar": { "title": "Add expense", "showBack": true },
+
+  "root": {
+    "type": "column",
+    "modifier": { "padding": 16, "width": "match_parent" },
+    "props": { "spacing": 16 },
+    "children": [
+      {
+        "type": "text",
+        "props": { "text": "Every field below — including its validation rules and error copy — is defined in JSON." },
+        "style": { "typography": "bodySmall", "textColor": "muted" }
+      },
+
+      {
+        "type": "number",
+        "props": {
+          "name": "amount",
+          "form": "expense",
+          "label": "Amount",
+          "placeholder": "0.00",
+          "keyboard": "decimal",
+          "leadingIcon": "creditCard",
+          "rules": [
+            { "type": "required", "message": "Enter an amount" },
+            { "type": "numeric", "message": "Digits only" },
+            { "type": "min", "value": 1, "message": "Must be at least ₹1" },
+            { "type": "max", "value": 500000, "message": "That is above your per-txn limit" }
+          ]
+        }
+      },
+
+      {
+        "type": "dropdown",
+        "props": {
+          "name": "category",
+          "form": "expense",
+          "label": "Category",
+          "options": [
+            { "label": "Food & drink", "value": "food" },
+            { "label": "Transport", "value": "transport" },
+            { "label": "Subscriptions", "value": "subs" },
+            { "label": "Health", "value": "health" }
+          ],
+          "rules": [{ "type": "required" }]
+        }
+      },
+
+      {
+        "type": "datePicker",
+        "props": {
+          "name": "date",
+          "form": "expense",
+          "label": "Date",
+          "placeholder": "Pick a date",
+          "displayFormat": "dd MMM yyyy",
+          "rules": [{ "type": "required", "message": "Pick a date" }]
+        }
+      },
+
+      {
+        "type": "textField",
+        "props": {
+          "name": "note",
+          "form": "expense",
+          "label": "Note",
+          "placeholder": "What was it for?",
+          "singleLine": false,
+          "maxLines": 3,
+          "maxLength": 120,
+          "helperText": "Optional",
+          "rules": [{ "type": "maxLength", "value": 120 }]
+        }
+      },
+
+      {
+        "type": "switch",
+        "props": { "name": "billable", "form": "expense", "label": "Billable to client" }
+      },
+
+      {
+        "type": "card",
+        "visible": "{{form.billable}}",
+        "animation": { "enter": "expand", "exit": "collapse", "durationMs": 220 },
+        "modifier": { "width": "match_parent", "cornerRadius": 14, "elevation": 0 },
+        "style": { "containerColor": "secondaryContainer" },
+        "children": [
+          {
+            "type": "row",
+            "modifier": { "padding": 12 },
+            "props": { "spacing": 8, "align": "center" },
+            "children": [
+              { "type": "icon", "props": { "name": "info", "size": 18 } },
+              {
+                "type": "text",
+                "modifier": { "weight": 1 },
+                "props": { "text": "Billable expenses are invoiced at the end of the month." },
+                "style": { "typography": "bodySmall" }
+              }
+            ]
+          }
+        ]
+      },
+
+      { "type": "spacer", "props": { "height": 8 } },
+
+      {
+        "type": "text",
+        "visible": "{{ui.error}}",
+        "props": { "text": "{{ui.error}}" },
+        "style": { "typography": "bodySmall", "textColor": "error" }
+      },
+
+      {
+        "type": "button",
+        "modifier": { "width": "match_parent" },
+        "props": {
+          "text": "Save expense",
+          "loading": "{{ui.submitting}}",
+          "leadingIcon": "check"
+        },
+        "actions": {
+          "onClick": {
+            "type": "validateForm",
+            "params": { "form": "expense" },
+            "then": [
+              {
+                "type": "apiCall",
+                "params": {
+                  "api": "createExpense",
+                  "body": {
+                    "amount": "{{number(form.amount)}}",
+                    "category": "{{form.category}}",
+                    "date": "{{form.date}}",
+                    "note": "{{form.note}}",
+                    "billable": "{{form.billable}}"
+                  }
+                },
+                "then": [
+                  { "type": "showToast", "params": { "message": "Expense saved", "snackbar": true } },
+                  { "type": "navigate", "params": { "mode": "pop", "result": { "saved": true } } }
+                ],
+                "onError": [
+                  {
+                    "type": "showDialog",
+                    "params": {
+                      "title": "Could not save",
+                      "message": "{{error}}",
+                      "confirmLabel": "Retry",
+                      "cancelLabel": "Dismiss",
+                      "confirmAction": { "type": "apiCall", "params": { "api": "createExpense" } }
+                    }
+                  }
+                ]
+              }
+            ],
+            "else": [
+              { "type": "showToast", "params": { "message": "Please fix the highlighted fields" } }
+            ]
+          }
+        }
+      },
+
+      {
+        "type": "button",
+        "modifier": { "width": "match_parent" },
+        "props": { "text": "Cancel", "variant": "text" },
+        "actions": { "onClick": { "type": "back" } }
+      }
+    ]
+  }
+}

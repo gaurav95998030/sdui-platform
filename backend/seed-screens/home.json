@@ -1,0 +1,256 @@
+{
+  "id": "home",
+  "schemaVersion": 1,
+  "version": "1.0.0",
+  "title": "Home",
+  "background": "background",
+  "theme": "brand",
+
+  "state": {
+    "ui": { "loading": false, "page": 1 },
+    "transactions": [
+      { "id": "t1", "title": "Blue Bottle Coffee", "category": "Food", "amount": -420, "icon": "cart", "date": "2026-08-01" },
+      { "id": "t2", "title": "Salary — August", "category": "Income", "amount": 185000, "icon": "download", "date": "2026-08-01" },
+      { "id": "t3", "title": "Metro Card Top-up", "category": "Transport", "amount": -1000, "icon": "creditCard", "date": "2026-07-30" },
+      { "id": "t4", "title": "Spotify Family", "category": "Subscriptions", "amount": -199, "icon": "play", "date": "2026-07-29" }
+    ]
+  },
+
+  "apis": {
+    "transactions": {
+      "url": "{{env.apiBase}}/api/v1/demo/transactions",
+      "method": "GET",
+      "query": { "page": "{{ui.page}}" },
+      "stateKey": "transactions",
+      "responsePath": "items",
+      "loadingKey": "ui.loading",
+      "errorKey": "ui.error",
+      "cache": { "policy": "staleWhileRevalidate", "ttlSeconds": 120 },
+      "retry": { "maxAttempts": 3, "backoffMs": 400 }
+    }
+  },
+
+  "onLoad": [
+    { "type": "apiCall", "params": { "api": "transactions" }, "ignoreFailure": true }
+  ],
+
+  "appBar": {
+    "title": "Hello, {{user.firstName}}",
+    "subtitle": "{{env.environment}} · v{{env.appVersion}}",
+    "showBack": false,
+    "background": "background"
+  },
+
+  "root": {
+    "type": "column",
+    "id": "root",
+    "modifier": { "padding": { "horizontal": 16, "vertical": 8 }, "width": "match_parent", "height": "match_parent" },
+    "props": { "spacing": 16 },
+    "children": [
+
+      {
+        "type": "card",
+        "id": "balanceCard",
+        "modifier": { "width": "match_parent", "cornerRadius": 20, "elevation": 0 },
+        "style": { "containerColor": "primary" },
+        "animation": { "enter": "slideUp", "durationMs": 350 },
+        "props": { "spacing": 4 },
+        "children": [
+          {
+            "type": "column",
+            "modifier": { "padding": 20 },
+            "props": { "spacing": 6 },
+            "children": [
+              {
+                "type": "text",
+                "props": { "text": "Available balance" },
+                "style": { "typography": "labelMedium", "textColor": "onPrimary" }
+              },
+              {
+                "type": "text",
+                "props": { "text": "{{currency(wallet.balance, wallet.currency)}}" },
+                "style": { "typography": "displaySmall", "textColor": "onPrimary", "fontWeight": "bold" }
+              },
+              {
+                "type": "row",
+                "props": { "spacing": 8, "align": "center" },
+                "children": [
+                  {
+                    "type": "text",
+                    "props": { "text": "{{user.isPremium ? 'Premium member' : 'Free plan'}}" },
+                    "style": { "typography": "labelSmall", "textColor": "onPrimary" }
+                  },
+                  {
+                    "type": "rating",
+                    "visible": "{{user.isPremium}}",
+                    "props": { "value": 5, "size": 14 },
+                    "style": { "tint": "#FFFFFF" }
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+
+      {
+        "type": "row",
+        "id": "quickActions",
+        "modifier": { "width": "match_parent" },
+        "props": { "spacing": 12 },
+        "children": [
+          {
+            "type": "button",
+            "modifier": { "weight": 1 },
+            "props": { "text": "Add expense", "leadingIcon": "add" },
+            "actions": {
+              "onClick": { "type": "navigate", "params": { "screen": "expense", "mode": "push" } }
+            }
+          },
+          {
+            "type": "button",
+            "modifier": { "weight": 1 },
+            "props": { "text": "Scan", "variant": "tonal", "leadingIcon": "qrCode" },
+            "actions": {
+              "onClick": {
+                "type": "scanQR",
+                "then": [
+                  {
+                    "type": "showToast",
+                    "params": { "message": "Scanned {{result}}", "snackbar": true, "actionLabel": "OK" }
+                  }
+                ],
+                "onError": [
+                  { "type": "showToast", "params": { "message": "Scanner unavailable: {{error}}" } }
+                ]
+              }
+            }
+          },
+          {
+            "type": "iconButton",
+            "props": { "icon": "settings" },
+            "actions": {
+              "onClick": { "type": "navigate", "params": { "screen": "settings", "mode": "bottomSheet" } }
+            }
+          }
+        ]
+      },
+
+      {
+        "type": "row",
+        "modifier": { "width": "match_parent" },
+        "props": { "justify": "spaceBetween", "align": "center" },
+        "children": [
+          {
+            "type": "text",
+            "props": { "text": "Recent activity" },
+            "style": { "typography": "titleMedium", "fontWeight": "semibold" }
+          },
+          {
+            "type": "text",
+            "props": { "text": "{{transactions.length}} items" },
+            "style": { "typography": "labelMedium", "textColor": "muted" }
+          }
+        ]
+      },
+
+      {
+        "type": "skeleton",
+        "visible": "{{ui.loading && transactions.length == 0}}",
+        "props": { "lines": 4, "lineHeight": 56 },
+        "modifier": { "width": "match_parent", "cornerRadius": 14 }
+      },
+
+      {
+        "type": "empty",
+        "visible": "{{!ui.loading && transactions.length == 0}}",
+        "props": {
+          "icon": "info",
+          "title": "No transactions yet",
+          "message": "Your spending will show up here once you add an expense."
+        }
+      },
+
+      {
+        "type": "lazyColumn",
+        "id": "transactionList",
+        "visible": "{{transactions.length > 0}}",
+        "modifier": { "width": "match_parent", "weight": 1 },
+        "props": {
+          "items": "{{transactions}}",
+          "spacing": 10,
+          "pullToRefresh": true,
+          "refreshing": "{{ui.loading}}",
+          "loadingMore": "{{ui.loadingMore}}"
+        },
+        "actions": {
+          "onRefresh": { "type": "apiCall", "params": { "api": "transactions" }, "ignoreFailure": true }
+        },
+        "children": [
+          {
+            "type": "card",
+            "modifier": { "width": "match_parent", "cornerRadius": 16, "elevation": 0 },
+            "style": { "containerColor": "surface" },
+            "actions": {
+              "onClick": {
+                "type": "navigate",
+                "params": {
+                  "screen": "detail",
+                  "mode": "push",
+                  "args": { "id": "{{item.id}}", "title": "{{item.title}}", "amount": "{{item.amount}}" }
+                }
+              }
+            },
+            "children": [
+              {
+                "type": "row",
+                "modifier": { "padding": 14, "width": "match_parent" },
+                "props": { "spacing": 12, "align": "center" },
+                "children": [
+                  {
+                    "type": "icon",
+                    "props": { "name": "{{item.icon}}", "size": 22 },
+                    "modifier": {
+                      "padding": 10,
+                      "cornerRadius": 12,
+                      "background": "surfaceVariant"
+                    },
+                    "style": { "tint": "{{item.amount > 0 ? 'success' : 'primary'}}" }
+                  },
+                  {
+                    "type": "column",
+                    "modifier": { "weight": 1 },
+                    "props": { "spacing": 2 },
+                    "children": [
+                      {
+                        "type": "text",
+                        "props": { "text": "{{item.title}}" },
+                        "style": { "typography": "bodyLarge", "maxLines": 1 }
+                      },
+                      {
+                        "type": "text",
+                        "props": { "text": "{{item.category}} · {{formatDate(item.date, 'dd MMM')}}" },
+                        "style": { "typography": "labelSmall", "textColor": "muted" }
+                      }
+                    ]
+                  },
+                  {
+                    "type": "text",
+                    "props": { "text": "{{item.amount > 0 ? '+' : ''}}{{currency(item.amount, wallet.currency)}}" },
+                    "style": {
+                      "typography": "titleSmall",
+                      "fontWeight": "semibold",
+                      "textColor": "{{item.amount > 0 ? 'success' : 'onSurface'}}"
+                    }
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+
+  "metadata": { "author": "dashboard", "publishedAt": "2026-08-04T09:00:00Z" }
+}

@@ -1,0 +1,90 @@
+{
+  "id": "profile",
+  "version": "1.0.0",
+  "title": "Profile",
+  "scrollable": true,
+  "appBar": { "title": "Profile", "showBack": true },
+
+  "state": {
+    "stats": [
+      { "id": "a", "label": "Spent", "value": 128400 },
+      { "id": "b", "label": "Saved", "value": 41200 },
+      { "id": "c", "label": "Invested", "value": 96000 }
+    ]
+  },
+
+  "root": {
+    "type": "column",
+    "modifier": { "padding": 20, "width": "match_parent" },
+    "props": { "spacing": 18, "align": "center" },
+    "children": [
+      {
+        "type": "image",
+        "props": { "url": "{{user.avatar}}", "contentScale": "crop", "alt": "Avatar" },
+        "modifier": { "size": 96, "cornerRadius": 48 }
+      },
+      {
+        "type": "text",
+        "props": { "text": "{{user.name}}" },
+        "style": { "typography": "headlineSmall", "fontWeight": "bold" }
+      },
+      {
+        "type": "text",
+        "props": { "text": "{{user.email}}" },
+        "style": { "typography": "bodyMedium", "textColor": "muted" }
+      },
+      {
+        "type": "chip",
+        "visible": "{{user.isPremium}}",
+        "props": { "text": "Premium", "icon": "star" }
+      },
+
+      {
+        "type": "grid",
+        "modifier": { "width": "match_parent", "height": 110 },
+        "props": { "items": "{{stats}}", "columns": 3, "spacing": 10 },
+        "children": [
+          {
+            "type": "card",
+            "modifier": { "cornerRadius": 14, "elevation": 0 },
+            "style": { "containerColor": "surfaceVariant" },
+            "children": [
+              {
+                "type": "column",
+                "modifier": { "padding": 12 },
+                "props": { "spacing": 2 },
+                "children": [
+                  {
+                    "type": "text",
+                    "props": { "text": "{{compact(item.value)}}" },
+                    "style": { "typography": "titleMedium", "fontWeight": "bold" }
+                  },
+                  {
+                    "type": "text",
+                    "props": { "text": "{{item.label}}" },
+                    "style": { "typography": "labelSmall", "textColor": "muted" }
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+
+      {
+        "type": "button",
+        "modifier": { "width": "match_parent" },
+        "props": { "text": "Open help centre", "variant": "outlined", "trailingIcon": "forward" },
+        "actions": {
+          "onClick": { "type": "openUrl", "params": { "url": "https://developer.android.com/jetpack/compose" } }
+        }
+      },
+      {
+        "type": "button",
+        "modifier": { "width": "match_parent" },
+        "props": { "text": "Back to home", "variant": "text" },
+        "actions": { "onClick": { "type": "navigate", "params": { "mode": "popToRoot" } } }
+      }
+    ]
+  }
+}

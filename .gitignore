@@ -1,0 +1,29 @@
+# Gradle / Android
+.gradle/
+build/
+local.properties
+*.iml
+.idea/
+captures/
+.cxx/
+
+# Node
+node_modules/
+dist/
+*.log
+
+# Backend runtime state — the screen registry is seeded, never committed
+backend/data/
+
+# OS
+.DS_Store
+
+# Kotlin compiler caches / TS build info
+.kotlin/
+*.tsbuildinfo
+
+# Secrets — never commit
+.env
+.env.*
+*.jks
+*.keystore
